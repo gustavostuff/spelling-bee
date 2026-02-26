@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spelling Bee Practice</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <h1>Spelling Bee Practice</h1>
+
+    <section class="card" aria-live="polite">
+      <div id="toast" class="toast hidden"></div>
+      <div id="word" class="word">loading...</div>
+      <div id="counts" class="counts">Correct: 0   Wrong: 0</div>
+    </section>
+
+    <section class="buttons">
+      <button id="btnCorrect" class="btn btn-good" type="button">Correct</button>
+      <button id="btnWrong" class="btn btn-bad" type="button">Wrong</button>
+    </section>
+
+    <footer class="panel panel-footer">
+      <button id="btnReset" class="btn btn-neutral" type="button">Reset counters</button>
+      <button id="btnHardest" class="btn btn-neutral" type="button">Top hardest</button>
+    </footer>
+
+    <section id="hardestPanel" class="panel hidden">
+      <h2>Top hardest (by wrong count)</h2>
+      <ol id="hardestList" class="hardest"></ol>
+      <p class="muted">Tip: do 5 minutes focusing on these, then go back to random mode.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
