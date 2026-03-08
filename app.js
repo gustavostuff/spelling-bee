@@ -25,11 +25,16 @@
   ];
 
   const STORAGE_KEY = "spelling_stats_v1";
+  const RANGE_STORAGE_KEY = "spelling_range_v1";
 
   const el = {
     word: document.getElementById("word"),
     counts: document.getElementById("counts"),
     toast: document.getElementById("toast"),
+    rangeForm: document.getElementById("rangeForm"),
+    rangeStart: document.getElementById("rangeStart"),
+    rangeEnd: document.getElementById("rangeEnd"),
+    rangeSummary: document.getElementById("rangeSummary"),
     btnCorrect: document.getElementById("btnCorrect"),
     btnWrong: document.getElementById("btnWrong"),
     btnReset: document.getElementById("btnReset"),
@@ -74,6 +79,10 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
   }
 
+  function saveRange(range) {
+    localStorage.setItem(RANGE_STORAGE_KEY, JSON.stringify(range));
+  }
+
   function hashWord(s) {
     let h = 0;
     for (let i = 0; i < s.length; i++) {
@@ -93,6 +102,49 @@
     return Math.max(a, Math.min(b, x));
   }
 
+  function normalizeRange(start, end) {
+    const max = WORDS.length;
+    let s = Math.round(Number(start));
+    let e = Math.round(Number(end));
+
+    if (!Number.isFinite(s)) s = 1;
+    if (!Number.isFinite(e)) e = max;
+
+    s = clamp(s, 1, max);
+    e = clamp(e, 1, max);
+
+    if (s > e) [s, e] = [e, s];
+    return { start: s, end: e };
+  }
+
+  function loadRange() {
+    const raw = localStorage.getItem(RANGE_STORAGE_KEY);
+    if (!raw) return { start: 1, end: WORDS.length };
+
+    try {
+      const parsed = JSON.parse(raw);
+      return normalizeRange(parsed?.start, parsed?.end);
+    } catch {
+      return { start: 1, end: WORDS.length };
+    }
+  }
+
+  function getActiveWords(range) {
+    return WORDS.slice(range.start - 1, range.end);
+  }
+
+  function syncRangeUI() {
+    el.rangeStart.min = "1";
+    el.rangeEnd.min = "1";
+    el.rangeStart.max = String(WORDS.length);
+    el.rangeEnd.max = String(WORDS.length);
+    el.rangeStart.value = String(range.start);
+    el.rangeEnd.value = String(range.end);
+
+    const amount = range.end - range.start + 1;
+    el.rangeSummary.textContent = `Range: ${range.start}-${range.end} (${amount} words)`;
+  }
+
   function weightForWord(stats, word) {
     const st = stats[word] || defaultStat();
     const base = 1.0;
@@ -104,16 +156,18 @@
     return Math.pow(raw, 0.65);
   }
 
-  function pickNextWord(stats) {
+  function pickNextWord(stats, pool) {
+    if (!pool.length) return WORDS[0];
+
     let total = 0;
-    for (const w of WORDS) total += weightForWord(stats, w);
+    for (const w of pool) total += weightForWord(stats, w);
 
     let r = Math.random() * total;
-    for (const w of WORDS) {
+    for (const w of pool) {
       r -= weightForWord(stats, w);
       if (r <= 0) return w;
     }
-    return WORDS[WORDS.length - 1];
+    return pool[pool.length - 1];
   }
 
   function toast(text, ms = 900) {
@@ -126,9 +180,11 @@
   }
 
   let stats = loadStats();
-  let currentWord = pickNextWord(stats);
+  let range = loadRange();
+  let currentWord = pickNextWord(stats, getActiveWords(range));
 
   function render() {
+    syncRangeUI();
     el.word.textContent = currentWord;
     el.word.style.color = colorForWord(currentWord);
 
@@ -137,8 +193,23 @@
   }
 
   function nextWord() {
-    currentWord = pickNextWord(stats);
+    currentWord = pickNextWord(stats, getActiveWords(range));
     render();
+  }
+
+  function applyRangeFromUI() {
+    const wasHardestOpen = !el.hardestPanel.classList.contains("hidden");
+    range = normalizeRange(el.rangeStart.value, el.rangeEnd.value);
+    saveRange(range);
+    toast(`Range set: ${range.start}-${range.end}`, 1100);
+
+    if (!getActiveWords(range).includes(currentWord)) {
+      nextWord();
+    } else {
+      render();
+    }
+
+    if (wasHardestOpen) showHardest();
   }
 
   function record(isCorrect) {
@@ -165,7 +236,7 @@
   }
 
   function showHardest() {
-    const arr = WORDS
+    const arr = getActiveWords(range)
       .map((w) => ({ w, ...stats[w] }))
       .sort((a, b) => (b.wrong - a.wrong) || (a.correct - b.correct));
 
@@ -186,6 +257,10 @@
   // Buttons
   el.btnCorrect.addEventListener("click", () => record(true));
   el.btnWrong.addEventListener("click", () => record(false));
+  el.rangeForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    applyRangeFromUI();
+  });
 
   // Reset button: confirmation dialog (no keyboard reset)
   el.btnReset.addEventListener("click", () => {

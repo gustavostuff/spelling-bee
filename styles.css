@@ -36,6 +36,43 @@ body{
   padding: 16px;
 }
 
+.range-panel{
+  display: grid;
+  gap: 10px;
+}
+
+.range-controls{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.field{
+  display: grid;
+  gap: 6px;
+}
+
+.field span{
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.field input{
+  width: 100%;
+  border: 1px solid var(--outline);
+  border-radius: 10px;
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 16px;
+  padding: 10px 12px;
+}
+
+.field input:focus{
+  outline: 2px solid #5f8cff;
+  outline-offset: 2px;
+}
+
 .panel-footer{
   display:flex;
   gap: 10px;
@@ -142,4 +179,10 @@ h2{
 
 .hardest li{
   margin: 6px 0;
+}
+
+@media (max-width: 700px){
+  .range-controls{
+    grid-template-columns: 1fr;
+  }
 }

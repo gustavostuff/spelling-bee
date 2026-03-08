@@ -16,6 +16,22 @@
       <div id="counts" class="counts">Correct: 0   Wrong: 0</div>
     </section>
 
+    <section class="panel range-panel">
+      <h2>Word range</h2>
+      <form id="rangeForm" class="range-controls">
+        <label class="field">
+          <span>From</span>
+          <input id="rangeStart" type="number" min="1" step="1" inputmode="numeric" />
+        </label>
+        <label class="field">
+          <span>To</span>
+          <input id="rangeEnd" type="number" min="1" step="1" inputmode="numeric" />
+        </label>
+        <button id="btnApplyRange" class="btn btn-neutral" type="submit">Apply range</button>
+      </form>
+      <p id="rangeSummary" class="muted">Range: all words</p>
+    </section>
+
     <section class="buttons">
       <button id="btnCorrect" class="btn btn-good" type="button">Correct</button>
       <button id="btnWrong" class="btn btn-bad" type="button">Wrong</button>
