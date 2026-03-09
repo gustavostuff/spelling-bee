@@ -1,5 +1,5 @@
 (() => {
-  const WORDS = [
+  const DEFAULT_WORDS = [
     "above","absence","accident","ancestor","angel","article","American","armies","bacteria","believes",
     "becoming","border","bread","breathe","brief","build","Canada","cannon","carried","carrying",
     "carnival","creature","continue","culture","costume","couple","comparison","dampness","design","develop",
@@ -12,6 +12,10 @@
     "motorcycle","messages","move","moving","nature","natural","nation","neighbor","neither","non toxic",
     "nonsense","novel"
   ];
+
+  const WORDS = Array.isArray(globalThis.__WORDS_OVERRIDE__) && globalThis.__WORDS_OVERRIDE__.length > 0
+    ? globalThis.__WORDS_OVERRIDE__.map((w) => String(w))
+    : DEFAULT_WORDS;
 
   const PASTELS = [
     [0.98, 0.78, 0.82],
@@ -26,6 +30,7 @@
 
   const STORAGE_KEY = "spelling_stats_v1";
   const RANGE_STORAGE_KEY = "spelling_range_v1";
+  const SESSION_SHOWN_KEY = "spelling_session_shown_v1";
 
   const el = {
     word: document.getElementById("word"),
@@ -81,6 +86,33 @@
 
   function saveRange(range) {
     localStorage.setItem(RANGE_STORAGE_KEY, JSON.stringify(range));
+  }
+
+  function loadSessionShownCounts() {
+    const raw = sessionStorage.getItem(SESSION_SHOWN_KEY);
+    if (!raw) return {};
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return {};
+
+      const counts = {};
+      for (const w of WORDS) {
+        counts[w] = Math.max(0, Number(parsed[w]) || 0);
+      }
+      return counts;
+    } catch {
+      return {};
+    }
+  }
+
+  function saveSessionShownCounts(counts) {
+    sessionStorage.setItem(SESSION_SHOWN_KEY, JSON.stringify(counts));
+  }
+
+  function markShown(word) {
+    sessionShownCounts[word] = (sessionShownCounts[word] || 0) + 1;
+    saveSessionShownCounts(sessionShownCounts);
   }
 
   function hashWord(s) {
@@ -156,18 +188,30 @@
     return Math.pow(raw, 0.65);
   }
 
+  function isSessionCapped(stats, word) {
+    const st = stats[word] || defaultStat();
+    if (st.correct <= st.wrong) return false;
+    return (sessionShownCounts[word] || 0) >= 2;
+  }
+
+  function getEligiblePool(stats, pool) {
+    const filtered = pool.filter((w) => !isSessionCapped(stats, w));
+    return filtered.length ? filtered : pool;
+  }
+
   function pickNextWord(stats, pool) {
     if (!pool.length) return WORDS[0];
+    const eligiblePool = getEligiblePool(stats, pool);
 
     let total = 0;
-    for (const w of pool) total += weightForWord(stats, w);
+    for (const w of eligiblePool) total += weightForWord(stats, w);
 
     let r = Math.random() * total;
-    for (const w of pool) {
+    for (const w of eligiblePool) {
       r -= weightForWord(stats, w);
       if (r <= 0) return w;
     }
-    return pool[pool.length - 1];
+    return eligiblePool[eligiblePool.length - 1];
   }
 
   function toast(text, ms = 900) {
@@ -181,7 +225,9 @@
 
   let stats = loadStats();
   let range = loadRange();
+  let sessionShownCounts = loadSessionShownCounts();
   let currentWord = pickNextWord(stats, getActiveWords(range));
+  markShown(currentWord);
 
   function render() {
     syncRangeUI();
@@ -194,6 +240,7 @@
 
   function nextWord() {
     currentWord = pickNextWord(stats, getActiveWords(range));
+    markShown(currentWord);
     render();
   }
 
