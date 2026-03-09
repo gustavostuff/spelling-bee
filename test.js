@@ -209,6 +209,31 @@ function parseSession(sessionStorage) {
   return JSON.parse(sessionStorage.getItem("spelling_session_shown_v1"));
 }
 
+function sampleInitialSelections({
+  mockWords,
+  initialStats,
+  initialRange = { start: 1, end: mockWords.length },
+  sampleSize = 400,
+}) {
+  const counts = {};
+  for (const w of mockWords) counts[w] = 0;
+
+  for (let i = 0; i < sampleSize; i += 1) {
+    const randomValue = (i + 0.5) / sampleSize;
+    const harness = createHarness({
+      mockWords,
+      initialStats,
+      initialRange,
+      initialSessionShown: {},
+      randomSequence: [randomValue],
+    });
+    harness.runApp();
+    counts[harness.elements.word.textContent] += 1;
+  }
+
+  return counts;
+}
+
 function runCoreFlowTest() {
   const mockWords = [
     "ant",
@@ -286,9 +311,49 @@ function runCoreFlowTest() {
   assert.strictEqual(elements.counts.textContent, "Correct: 0   Wrong: 0", "Counts display should reset");
 }
 
+function runWrongBiasDistributionTest() {
+  const mockWords = ["steady", "needsPractice"];
+  const stats = buildDefaultStats(mockWords);
+  stats.needsPractice = { correct: 0, wrong: 5 };
+
+  const counts = sampleInitialSelections({
+    mockWords,
+    initialStats: stats,
+    sampleSize: 800,
+  });
+
+  assert.ok(
+    counts.needsPractice > counts.steady * 1.8,
+    `Word with wrong > correct should be selected much more often (${JSON.stringify(counts)})`
+  );
+}
+
+function runUniformDistributionTest() {
+  const mockWords = ["alpha", "beta", "gamma", "delta"];
+  const stats = buildDefaultStats(mockWords);
+  const sampleSize = 400;
+  const expected = sampleSize / mockWords.length;
+
+  const counts = sampleInitialSelections({
+    mockWords,
+    initialStats: stats,
+    sampleSize,
+  });
+
+  for (const w of mockWords) {
+    assert.strictEqual(
+      counts[w],
+      expected,
+      `Equal-weight pool should split selections evenly for ${w} (${JSON.stringify(counts)})`
+    );
+  }
+}
+
 try {
   runCoreFlowTest();
-  console.log("PASS test.js: core spelling app flow with 10 mocked words");
+  runWrongBiasDistributionTest();
+  runUniformDistributionTest();
+  console.log("PASS test.js: core flow + weighted/random distribution checks");
 } catch (err) {
   console.error("FAIL test.js");
   throw err;
