@@ -246,6 +246,11 @@ function runCoreFlowTest() {
     "hawk",
     "ibis",
     "jay",
+    "kiwi",
+    "lion",
+    "mole",
+    "newt",
+    "owl",
   ];
 
   const stats = buildDefaultStats(mockWords);
@@ -254,7 +259,7 @@ function runCoreFlowTest() {
   const harness = createHarness({
     mockWords,
     initialStats: stats,
-    initialRange: { start: 1, end: 5 },
+    initialRange: { start: 1, end: 10 },
     initialSessionShown: {},
     randomSequence: [0],
   });
@@ -264,7 +269,7 @@ function runCoreFlowTest() {
   const { elements, localStorage, sessionStorage, window } = harness;
 
   assert.strictEqual(elements.word.textContent, "ant", "Initial word should be first in range");
-  assert.strictEqual(elements.rangeSummary.textContent, "Range: 1-5 (5 words)");
+  assert.strictEqual(elements.rangeSummary.textContent, "Range: 1-10 (10 words)");
 
   elements.btnCorrect.trigger("click");
   assert.strictEqual(elements.word.textContent, "ant", "Mastered word can still appear up to 2 times");
@@ -276,16 +281,16 @@ function runCoreFlowTest() {
   sessionCounts = parseSession(sessionStorage);
   assert.strictEqual(sessionCounts.ant, 2, "Capped word should stop increasing when alternatives exist");
 
-  elements.rangeStart.value = "9";
-  elements.rangeEnd.value = "2";
+  elements.rangeStart.value = "14";
+  elements.rangeEnd.value = "3";
   elements.rangeForm.trigger("submit", { preventDefault() {} });
-  assert.strictEqual(elements.rangeSummary.textContent, "Range: 2-9 (8 words)", "Range should normalize and swap");
-  assert.ok(mockWords.slice(1, 9).includes(elements.word.textContent), "Word should stay within normalized range");
+  assert.strictEqual(elements.rangeSummary.textContent, "Range: 3-14 (12 words)", "Range should normalize and swap");
+  assert.ok(mockWords.slice(2, 14).includes(elements.word.textContent), "Word should stay within normalized range");
 
   elements.rangeStart.value = "3";
-  elements.rangeEnd.value = "6";
+  elements.rangeEnd.value = "12";
   elements.rangeForm.trigger("submit", { preventDefault() {} });
-  assert.strictEqual(elements.rangeSummary.textContent, "Range: 3-6 (4 words)");
+  assert.strictEqual(elements.rangeSummary.textContent, "Range: 3-12 (10 words)");
   assert.strictEqual(elements.word.textContent, "cat", "Random selection should use narrowed range");
 
   elements.btnWrong.trigger("click");

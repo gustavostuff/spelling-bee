@@ -10,8 +10,15 @@
     "kangaroo","Kansas","ketchup","kingdom","kindness","kitchen","king","lava","level","leader",
     "liar","library","lives","loaves","lightning","lunch","master","machine","meat","mother",
     "motorcycle","messages","move","moving","nature","natural","nation","neighbor","neither","non toxic",
-    "nonsense","novel"
+    "nonsense","novel","orange","old","Olympic","oxen","parts","particular","participant","percent",
+    "pioneer","politician","protect","quiet","remark","remote","scene","solemn","talk","temperature",
+    "theater","tray","tomatoes","travel","Tuesday","unable","uncomfortable","urgent","valley","violin",
+    "violent","virus","vitamin","warning","walked","Wednesday","weather","wishes","wool","wondered",
+    "wrong","yard","yardstick","yesterday","yours","zebra","zero","zipper","zig-zag","zoom",
   ];
+
+  const MIN_RANGE_WORDS = 10;
+  const MAX_RANGE_WORDS = 150;
 
   const WORDS = Array.isArray(globalThis.__WORDS_OVERRIDE__) && globalThis.__WORDS_OVERRIDE__.length > 0
     ? globalThis.__WORDS_OVERRIDE__.map((w) => String(w))
@@ -146,6 +153,23 @@
     e = clamp(e, 1, max);
 
     if (s > e) [s, e] = [e, s];
+
+    const minSpan = Math.min(MIN_RANGE_WORDS, max);
+    const maxSpan = Math.min(MAX_RANGE_WORDS, max);
+
+    let span = e - s + 1;
+    if (span > maxSpan) {
+      e = Math.min(max, s + maxSpan - 1);
+      span = e - s + 1;
+    }
+    if (span < minSpan) {
+      e = Math.min(max, s + minSpan - 1);
+      span = e - s + 1;
+      if (span < minSpan) {
+        s = Math.max(1, e - minSpan + 1);
+      }
+    }
+
     return { start: s, end: e };
   }
 
