@@ -181,6 +181,76 @@ h2{
   margin: 6px 0;
 }
 
+.word-grid-panel{
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.word-grid-stats{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 22px;
+  font-size: 13px;
+  margin: 0;
+}
+
+.word-grid-stat{
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.word-grid-stat-label{
+  color: var(--muted);
+}
+
+.word-grid-stat-num{
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.word-grid{
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.word-grid td{
+  width: 6.66%;
+  height: 14px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  vertical-align: middle;
+}
+
+.word-grid td.wg-none{
+  background: transparent;
+}
+
+.word-grid td.wg-good{
+  background: #153d28;
+}
+
+.word-grid td.wg-bad{
+  background: #4a1218;
+}
+
+.word-grid td.wg-tie{
+  background: #3d4558;
+}
+
+.word-grid td.wg-pad{
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
 @media (max-width: 700px){
   .range-controls{
     grid-template-columns: 1fr;

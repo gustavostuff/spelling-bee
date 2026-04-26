@@ -137,6 +137,10 @@ function createHarness({ mockWords, initialStats, initialRange, initialSessionSh
     btnHardest: new ElementMock("btnHardest"),
     hardestPanel: new ElementMock("hardestPanel", ["hidden"]),
     hardestList: new ElementMock("hardestList"),
+    wordGridBody: new ElementMock("wordGridBody"),
+    wordGridStatMoreWrong: new ElementMock("wordGridStatMoreWrong"),
+    wordGridStatMoreCorrect: new ElementMock("wordGridStatMoreCorrect"),
+    wordGridStatBothZero: new ElementMock("wordGridStatBothZero"),
   };
 
   let anonCounter = 0;
@@ -199,6 +203,11 @@ function createHarness({ mockWords, initialStats, initialRange, initialSessionSh
       vm.runInNewContext(code, context, { filename: "app.js" });
     },
   };
+}
+
+/** Enough `Math.random()` draws for a long interaction test (each call consumes one value). */
+function randomZeros(n) {
+  return Array.from({ length: n }, () => 0);
 }
 
 function parseStats(localStorage) {
@@ -272,14 +281,22 @@ function runCoreFlowTest() {
   assert.strictEqual(elements.rangeSummary.textContent, "Range: 1-10 (10 words)");
 
   elements.btnCorrect.trigger("click");
-  assert.strictEqual(elements.word.textContent, "ant", "Mastered word can still appear up to 2 times");
+  assert.strictEqual(
+    elements.word.textContent,
+    "ant",
+    "Neutral-or-positive score: word may appear twice in a session before cap"
+  );
   let sessionCounts = parseSession(sessionStorage);
-  assert.strictEqual(sessionCounts.ant, 2, "Mastered word should have been shown twice");
+  assert.strictEqual(sessionCounts.ant, 2, "Session show count should reach 2 for that word");
 
   elements.btnWrong.trigger("click");
-  assert.strictEqual(elements.word.textContent, "bat", "Mastered word should be capped after 2 shows");
+  assert.strictEqual(
+    elements.word.textContent,
+    "bat",
+    "After two session appearances, neutral/positive words are excluded when others exist"
+  );
   sessionCounts = parseSession(sessionStorage);
-  assert.strictEqual(sessionCounts.ant, 2, "Capped word should stop increasing when alternatives exist");
+  assert.strictEqual(sessionCounts.ant, 2, "Capped word should stop increasing session count when alternatives exist");
 
   elements.rangeStart.value = "14";
   elements.rangeEnd.value = "3";
@@ -314,6 +331,90 @@ function runCoreFlowTest() {
   }
   assert.strictEqual(elements.hardestPanel.classList.contains("hidden"), true, "Reset should hide hardest panel");
   assert.strictEqual(elements.counts.textContent, "Correct: 0   Wrong: 0", "Counts display should reset");
+}
+
+function runSessionCapPositiveOrTieTest() {
+  const mockWords = ["alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa"];
+  const stats = buildDefaultStats(mockWords);
+  stats.alpha = { correct: 1, wrong: 1 };
+
+  const harness = createHarness({
+    mockWords,
+    initialStats: stats,
+    initialRange: { start: 1, end: 10 },
+    initialSessionShown: {},
+    randomSequence: randomZeros(40),
+  });
+  harness.runApp();
+
+  const { elements, sessionStorage } = harness;
+  assert.strictEqual(elements.word.textContent, "alpha", "Tie score (1,1) is neutral-or-positive: first pick is list head");
+
+  elements.btnCorrect.trigger("click");
+  assert.strictEqual(elements.word.textContent, "alpha", "Second session appearance still allowed");
+  assert.strictEqual(parseSession(sessionStorage).alpha, 2, "alpha should have been shown exactly twice so far");
+
+  elements.btnCorrect.trigger("click");
+  assert.strictEqual(
+    elements.word.textContent,
+    "beta",
+    "After two appearances, tie/positive word must leave the eligible pool when other words exist"
+  );
+  assert.strictEqual(parseSession(sessionStorage).alpha, 2, "alpha session count should not grow past cap threshold");
+}
+
+function runSessionCapStrugglingNotCappedTest() {
+  const mockWords = ["struggle", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
+  const stats = buildDefaultStats(mockWords);
+  stats.struggle = { correct: 0, wrong: 4 };
+
+  const harness = createHarness({
+    mockWords,
+    initialStats: stats,
+    initialRange: { start: 1, end: 10 },
+    initialSessionShown: {},
+    randomSequence: randomZeros(40),
+  });
+  harness.runApp();
+
+  const { elements, sessionStorage } = harness;
+
+  for (let k = 0; k < 5; k += 1) {
+    assert.strictEqual(
+      elements.word.textContent,
+      "struggle",
+      `Wrong>correct should not session-cap: iteration ${k}`
+    );
+    elements.btnWrong.trigger("click");
+  }
+
+  const sess = parseSession(sessionStorage);
+  assert.ok(
+    sess.struggle >= 5,
+    `struggle should accumulate many session shows when wrong>correct (${JSON.stringify(sess)})`
+  );
+}
+
+function runSessionCapAllCappedFallbackTest() {
+  const mockWords = ["onlyA", "onlyB"];
+  const stats = buildDefaultStats(mockWords);
+  stats.onlyA = { correct: 1, wrong: 0 };
+  stats.onlyB = { correct: 1, wrong: 0 };
+
+  const harness = createHarness({
+    mockWords,
+    initialStats: stats,
+    initialRange: { start: 1, end: 2 },
+    initialSessionShown: { onlyA: 2, onlyB: 2 },
+    randomSequence: randomZeros(20),
+  });
+  harness.runApp();
+
+  const { elements } = harness;
+  assert.ok(
+    mockWords.includes(elements.word.textContent),
+    "When every word in range is session-capped, pool should fall back to full range"
+  );
 }
 
 function runWrongBiasDistributionTest() {
@@ -356,9 +457,12 @@ function runUniformDistributionTest() {
 
 try {
   runCoreFlowTest();
+  runSessionCapPositiveOrTieTest();
+  runSessionCapStrugglingNotCappedTest();
+  runSessionCapAllCappedFallbackTest();
   runWrongBiasDistributionTest();
   runUniformDistributionTest();
-  console.log("PASS test.js: core flow + weighted/random distribution checks");
+  console.log("PASS test.js: core flow, session caps, weighted/uniform checks");
 } catch (err) {
   console.error("FAIL test.js");
   throw err;

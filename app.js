@@ -19,6 +19,8 @@
 
   const MIN_RANGE_WORDS = 10;
   const MAX_RANGE_WORDS = 150;
+  const GRID_ROWS = 10;
+  const GRID_COLS = 15;
 
   const WORDS = Array.isArray(globalThis.__WORDS_OVERRIDE__) && globalThis.__WORDS_OVERRIDE__.length > 0
     ? globalThis.__WORDS_OVERRIDE__.map((w) => String(w))
@@ -212,9 +214,16 @@
     return Math.pow(raw, 0.65);
   }
 
+  /** Words with correct >= wrong (including 0–0 and ties) may appear at most twice per session. */
+  function isNeutralOrPositiveScore(st) {
+    const c = Number(st.correct) || 0;
+    const w = Number(st.wrong) || 0;
+    return c >= w;
+  }
+
   function isSessionCapped(stats, word) {
     const st = stats[word] || defaultStat();
-    if (st.correct <= st.wrong) return false;
+    if (!isNeutralOrPositiveScore(st)) return false;
     return (sessionShownCounts[word] || 0) >= 2;
   }
 
@@ -236,6 +245,81 @@
       if (r <= 0) return w;
     }
     return eligiblePool[eligiblePool.length - 1];
+  }
+
+  /** @type {HTMLTableCellElement[] | null} */
+  let wordGridCells = null;
+
+  function buildWordGrid() {
+    const tbody = document.getElementById("wordGridBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+    wordGridCells = [];
+
+    for (let r = 0; r < GRID_ROWS; r++) {
+      const tr = document.createElement("tr");
+      for (let c = 0; c < GRID_COLS; c++) {
+        const td = document.createElement("td");
+        const i = r * GRID_COLS + c;
+        if (i < WORDS.length) {
+          td.title = WORDS[i];
+        }
+        tr.appendChild(td);
+        wordGridCells.push(td);
+      }
+      tbody.appendChild(tr);
+    }
+  }
+
+  function syncWordGrid() {
+    if (!wordGridCells) return;
+
+    for (let i = 0; i < wordGridCells.length; i++) {
+      const td = wordGridCells[i];
+      if (i >= WORDS.length) {
+        td.title = "";
+        td.className = "wg-pad";
+        continue;
+      }
+
+      const w = WORDS[i];
+      td.title = w;
+      const st = stats[w] || defaultStat();
+      const c = st.correct;
+      const wr = st.wrong;
+
+      if (c === 0 && wr === 0) {
+        td.className = "wg-none";
+      } else if (wr > c) {
+        td.className = "wg-bad";
+      } else if (c > wr) {
+        td.className = "wg-good";
+      } else {
+        td.className = "wg-tie";
+      }
+    }
+  }
+
+  function syncWordGridStats() {
+    let moreWrong = 0;
+    let moreCorrect = 0;
+    let bothZero = 0;
+    for (const w of WORDS) {
+      const st = stats[w] || defaultStat();
+      const c = Number(st.correct) || 0;
+      const wr = Number(st.wrong) || 0;
+      if (c === 0 && wr === 0) bothZero += 1;
+      else if (wr > c) moreWrong += 1;
+      else if (c > wr) moreCorrect += 1;
+    }
+
+    const elWrong = document.getElementById("wordGridStatMoreWrong");
+    const elCorrect = document.getElementById("wordGridStatMoreCorrect");
+    const elZero = document.getElementById("wordGridStatBothZero");
+    if (elWrong) elWrong.textContent = String(moreWrong);
+    if (elCorrect) elCorrect.textContent = String(moreCorrect);
+    if (elZero) elZero.textContent = String(bothZero);
   }
 
   function toast(text, ms = 900) {
@@ -260,6 +344,8 @@
 
     const st = stats[currentWord] || defaultStat();
     el.counts.textContent = `Correct: ${st.correct}   Wrong: ${st.wrong}`;
+    syncWordGrid();
+    syncWordGridStats();
   }
 
   function nextWord() {
@@ -354,5 +440,6 @@
     else if (k === "w") record(false);
   });
 
+  buildWordGrid();
   render();
 })();

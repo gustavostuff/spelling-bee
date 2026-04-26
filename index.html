@@ -47,6 +47,26 @@
       <ol id="hardestList" class="hardest"></ol>
       <p class="muted">Tip: do 5 minutes focusing on these, then go back to random mode.</p>
     </section>
+
+    <section class="panel word-grid-panel" aria-label="Word map: hover a cell for the word">
+      <div class="word-grid-stats muted" aria-live="polite">
+        <div class="word-grid-stat">
+          <span class="word-grid-stat-label">Wrong &gt; correct</span>
+          <strong id="wordGridStatMoreWrong" class="word-grid-stat-num">0</strong>
+        </div>
+        <div class="word-grid-stat">
+          <span class="word-grid-stat-label">Correct &gt; wrong</span>
+          <strong id="wordGridStatMoreCorrect" class="word-grid-stat-num">0</strong>
+        </div>
+        <div class="word-grid-stat">
+          <span class="word-grid-stat-label">Both zero</span>
+          <strong id="wordGridStatBothZero" class="word-grid-stat-num">0</strong>
+        </div>
+      </div>
+      <table class="word-grid" id="wordGrid">
+        <tbody id="wordGridBody"></tbody>
+      </table>
+    </section>
   </main>
 
   <script src="app.js"></script>
