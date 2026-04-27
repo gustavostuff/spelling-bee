@@ -242,10 +242,6 @@ h2{
   background: #4a1218;
 }
 
-.word-grid td.wg-tie{
-  background: #3d4558;
-}
-
 .word-grid td.wg-pad{
   background: transparent;
   border-color: rgba(255, 255, 255, 0.06);

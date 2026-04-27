@@ -293,10 +293,8 @@
         td.className = "wg-none";
       } else if (wr > c) {
         td.className = "wg-bad";
-      } else if (c > wr) {
-        td.className = "wg-good";
       } else {
-        td.className = "wg-tie";
+        td.className = "wg-good";
       }
     }
   }
@@ -311,7 +309,7 @@
       const wr = Number(st.wrong) || 0;
       if (c === 0 && wr === 0) bothZero += 1;
       else if (wr > c) moreWrong += 1;
-      else if (c > wr) moreCorrect += 1;
+      else if (c >= wr) moreCorrect += 1;
     }
 
     const elWrong = document.getElementById("wordGridStatMoreWrong");
