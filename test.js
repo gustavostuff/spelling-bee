@@ -52,8 +52,14 @@ class ElementMock {
     this.value = "";
     this.min = "";
     this.max = "";
+    this.title = "";
+    this.type = "";
+    this.disabled = false;
+    this.tabIndex = 0;
+    this.className = "";
     this.style = {};
     this.children = [];
+    this.attributes = {};
     this.classList = new ClassListMock(classes);
     this.listeners = {};
 
@@ -67,6 +73,14 @@ class ElementMock {
         if (html === "") this.children = [];
       },
     });
+  }
+
+  setAttribute(name, value) {
+    this.attributes[String(name)] = String(value);
+  }
+
+  getAttribute(name) {
+    return this.attributes[String(name)] ?? null;
   }
 
   addEventListener(type, handler) {
@@ -137,7 +151,7 @@ function createHarness({ mockWords, initialStats, initialRange, initialSessionSh
     btnHardest: new ElementMock("btnHardest"),
     hardestPanel: new ElementMock("hardestPanel", ["hidden"]),
     hardestList: new ElementMock("hardestList"),
-    wordGridBody: new ElementMock("wordGridBody"),
+    wordGrid: new ElementMock("wordGrid"),
     wordGridStatMoreWrong: new ElementMock("wordGridStatMoreWrong"),
     wordGridStatMoreCorrect: new ElementMock("wordGridStatMoreCorrect"),
     wordGridStatBothZero: new ElementMock("wordGridStatBothZero"),

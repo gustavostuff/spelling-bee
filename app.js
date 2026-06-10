@@ -19,8 +19,8 @@
 
   const MIN_RANGE_WORDS = 10;
   const MAX_RANGE_WORDS = 150;
-  const GRID_ROWS = 10;
-  const GRID_COLS = 15;
+  const GRID_ROWS = 15;
+  const GRID_COLS = 10;
 
   const WORDS = Array.isArray(globalThis.__WORDS_OVERRIDE__) && globalThis.__WORDS_OVERRIDE__.length > 0
     ? globalThis.__WORDS_OVERRIDE__.map((w) => String(w))
@@ -247,28 +247,37 @@
     return eligiblePool[eligiblePool.length - 1];
   }
 
-  /** @type {HTMLTableCellElement[] | null} */
+  /** @type {HTMLButtonElement[] | null} */
   let wordGridCells = null;
 
   function buildWordGrid() {
-    const tbody = document.getElementById("wordGridBody");
-    if (!tbody) return;
+    const grid = document.getElementById("wordGrid");
+    if (!grid) return;
 
-    tbody.innerHTML = "";
+    grid.innerHTML = "";
     wordGridCells = [];
 
     for (let r = 0; r < GRID_ROWS; r++) {
-      const tr = document.createElement("tr");
       for (let c = 0; c < GRID_COLS; c++) {
-        const td = document.createElement("td");
         const i = r * GRID_COLS + c;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "word-grid-btn";
+
         if (i < WORDS.length) {
-          td.title = WORDS[i];
+          const w = WORDS[i];
+          btn.title = w;
+          btn.setAttribute("aria-label", w);
+          btn.addEventListener("click", () => loadWord(w));
+        } else {
+          btn.disabled = true;
+          btn.tabIndex = -1;
+          btn.setAttribute("aria-hidden", "true");
         }
-        tr.appendChild(td);
-        wordGridCells.push(td);
+
+        grid.appendChild(btn);
+        wordGridCells.push(btn);
       }
-      tbody.appendChild(tr);
     }
   }
 
@@ -276,27 +285,39 @@
     if (!wordGridCells) return;
 
     for (let i = 0; i < wordGridCells.length; i++) {
-      const td = wordGridCells[i];
+      const btn = wordGridCells[i];
       if (i >= WORDS.length) {
-        td.title = "";
-        td.className = "wg-pad";
+        btn.title = "";
+        btn.className = "word-grid-btn wg-pad";
         continue;
       }
 
       const w = WORDS[i];
-      td.title = w;
+      btn.title = w;
+      btn.setAttribute("aria-label", w);
       const st = stats[w] || defaultStat();
       const c = st.correct;
       const wr = st.wrong;
 
+      let stateClass = "wg-none";
       if (c === 0 && wr === 0) {
-        td.className = "wg-none";
+        stateClass = "wg-none";
       } else if (wr > c) {
-        td.className = "wg-bad";
+        stateClass = "wg-bad";
       } else {
-        td.className = "wg-good";
+        stateClass = "wg-good";
       }
+
+      const currentClass = w === currentWord ? " wg-current" : "";
+      btn.className = `word-grid-btn ${stateClass}${currentClass}`;
     }
+  }
+
+  function loadWord(word) {
+    if (!WORDS.includes(word)) return;
+    currentWord = word;
+    markShown(currentWord);
+    render();
   }
 
   function syncWordGridStats() {

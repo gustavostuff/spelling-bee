@@ -48,7 +48,7 @@
       <p class="muted">Tip: do 5 minutes focusing on these, then go back to random mode.</p>
     </section>
 
-    <section class="panel word-grid-panel" aria-label="Word map: hover a cell for the word">
+    <section class="panel word-grid-panel" aria-label="Word map: click a cell to load that word">
       <div class="word-grid-stats muted" aria-live="polite">
         <div class="word-grid-stat">
           <span class="word-grid-stat-label">Wrong &gt; correct</span>
@@ -63,9 +63,7 @@
           <strong id="wordGridStatBothZero" class="word-grid-stat-num">0</strong>
         </div>
       </div>
-      <table class="word-grid" id="wordGrid">
-        <tbody id="wordGridBody"></tbody>
-      </table>
+      <div class="word-grid" id="wordGrid" role="group"></div>
     </section>
   </main>
 

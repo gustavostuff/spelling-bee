@@ -218,33 +218,53 @@ h2{
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
-  border-collapse: collapse;
-  table-layout: fixed;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0;
 }
 
-.word-grid td{
-  width: 6.66%;
-  height: 14px;
+.word-grid-btn{
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 14px;
   padding: 0;
+  margin: 0;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  vertical-align: middle;
+  cursor: pointer;
+  background: transparent;
+  transition: outline-color 0.08s ease, filter 0.08s ease;
 }
 
-.word-grid td.wg-none{
+.word-grid-btn:not(:disabled):hover{
+  filter: brightness(1.35);
+}
+
+.word-grid-btn:not(:disabled):active{
+  filter: brightness(0.85);
+}
+
+.word-grid-btn.wg-none{
   background: transparent;
 }
 
-.word-grid td.wg-good{
+.word-grid-btn.wg-good{
   background: #153d28;
 }
 
-.word-grid td.wg-bad{
+.word-grid-btn.wg-bad{
   background: #4a1218;
 }
 
-.word-grid td.wg-pad{
+.word-grid-btn.wg-pad{
   background: transparent;
   border-color: rgba(255, 255, 255, 0.06);
+  cursor: default;
+}
+
+.word-grid-btn.wg-current{
+  outline: 2px solid #5f8cff;
+  outline-offset: -1px;
+  z-index: 1;
 }
 
 @media (max-width: 700px){
