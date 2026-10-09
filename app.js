@@ -1,25 +1,30 @@
 (() => {
   const DEFAULT_WORDS = [
-    "above","absence","accident","ancestor","angel","article","American","armies","bacteria","believes",
-    "becoming","border","bread","breathe","brief","build","Canada","cannon","carried","carrying",
-    "carnival","creature","continue","culture","costume","couple","comparison","dampness","design","develop",
-    "disease","discuss","education","effect","England","English","everyone","favored","father","fellow",
-    "fluid","freeway","fried","fruits","furniture","Forty-two","generation","gift","good-bye","golden",
-    "government","grade","guardian","guess","harbor","hamburger","harmful","hunger","hurry","history",
-    "income","ignorant","indeed","informal","island","January","journey","join","judge","jump",
-    "kangaroo","Kansas","ketchup","kingdom","kindness","kitchen","king","lava","level","leader",
-    "liar","library","lives","loaves","lightning","lunch","master","machine","meat","mother",
-    "motorcycle","messages","move","moving","nature","natural","nation","neighbor","neither","non toxic",
-    "nonsense","novel","orange","old","Olympic","oxen","parts","particular","participant","percent",
-    "pioneer","politician","protect","quiet","remark","remote","scene","solemn","talk","temperature",
-    "theater","tray","tomatoes","travel","Tuesday","unable","uncomfortable","urgent","valley","violin",
-    "violent","virus","vitamin","warning","walked","Wednesday","weather","wishes","wool","wondered",
-    "wrong","yard","yardstick","yesterday","yours","zebra","zero","zipper","zig-zag","zoom",
+    "absurd","access","advise","adapt","adopt","affection","afraid","aloud","angle","anger",
+    "another","allergy","atlas","among","attic","assist","average","balance","basis","beware",
+    "braille","breaking","breathe","biscuits","board","broad","bronze","brother","briefcase","Celsius",
+    "cereal","class","climate","citizen","coarse","college","commands","compass","computer","connect",
+    "course","crumple","country","covers","circuit","charms","China","defeat","denim","desert",
+    "dessert","dictate","dictator","diction","dictionary","diesel","dual","difficult","decent","descent",
+    "device","effect","ego","eight","elder","embark","Fahrenheit","feather","flair","flare",
+    "fourteen","forbidden","fortune","fierce","frighten","frightful","friendship","foreign","fulfill","garlic",
+    "German","glasses","granite","girlfriend","grief","guess","guilty","guitar","heard","height",
+    "honey","hoarse","hole","hunger","hygiene","impact","impress","improvise","import","invisible",
+    "laser","leader","leisure","leotard","lemon","lightning","limousine","limit","linen","magic",
+    "mental","medical","messages","memory","mercury","movie","modern","minute","musical","myth",
+    "necessary","neither","niece","novel","odyssey","official","older","optimism","oppose","oxygen",
+    "painting","parcel","planet","plastic","people","personnel","pierce","pledge","political","praise",
+    "principle","public","pulse","quarter","raise","raze","received","relief","remark","remain",
+    "resource","reign","reveal","Roman","rumor","sandwich","scarce","scent","season","sequel",
+    "sent","sheriff","shoulder","sky","slight","sleigh","splendid","stranger","solve","southern",
+    "sun","success","survive","symbol","system","symptoms","straighten","tangerine","televise","thieves",
+    "their","there","through","tightly","ton","transit","tuxedo","vein","veil","velvet",
+    "visible","visited","visual","volt","wander","watt","wearing","whole","words","worst",
   ];
 
   const MIN_RANGE_WORDS = 10;
-  const MAX_RANGE_WORDS = 150;
-  const GRID_ROWS = 15;
+  const MAX_RANGE_WORDS = 200;
+  const GRID_ROWS = 20;
   const GRID_COLS = 10;
 
   const WORDS = Array.isArray(globalThis.__WORDS_OVERRIDE__) && globalThis.__WORDS_OVERRIDE__.length > 0
